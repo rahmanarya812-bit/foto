@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Photobox iOS Glass</title>
+<title>Photobox iOS Glass HD</title>
 
 <style>
 *{box-sizing:border-box}
@@ -219,19 +219,33 @@ const templateSelect=document.getElementById("templateSelect");
 
 let photos=[];
 
-/* CAMERA NORMAL */
+/* HD CAMERA + AUTOFOCUS */
 async function initCamera(){
-  const stream=await navigator.mediaDevices.getUserMedia({video:true});
+  const stream=await navigator.mediaDevices.getUserMedia({
+    video:{
+      width:{ideal:1920},
+      height:{ideal:1080},
+      facingMode:"user"
+    }
+  });
+
   video.srcObject=stream;
+
+  await new Promise(resolve=>{
+    video.onloadedmetadata=()=>{
+      video.play();
+      resolve();
+    };
+  });
 }
 initCamera();
 
-/* FILTER PREVIEW */
+/* PREVIEW FILTER */
 filterSelect.addEventListener("change",()=>{
   video.style.filter=filterSelect.value;
 });
 
-/* START */
+/* START SESSION */
 async function startSession(){
   photos=[];
   finalCanvas.style.display="none";
@@ -241,6 +255,7 @@ async function startSession(){
 
   for(let i=0;i<count;i++){
     await countdown(delay);
+    await new Promise(r=>setTimeout(r,400)); // anti blur delay
     capturePhoto();
   }
 
@@ -255,7 +270,10 @@ function countdown(sec){
     const i=setInterval(()=>{
       c--;
       timerDisplay.textContent=c>0?c:"";
-      if(c<=0){clearInterval(i);resolve();}
+      if(c<=0){
+        clearInterval(i);
+        resolve();
+      }
     },1000);
   });
 }
@@ -269,6 +287,9 @@ function capturePhoto(){
   canvas.height=video.videoHeight;
 
   const ctx=canvas.getContext("2d");
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality="high";
+
   ctx.filter=filterSelect.value;
   ctx.drawImage(video,0,0);
 
@@ -307,6 +328,7 @@ async function generateStrip(){
   ctx.fillRect(0,0,width,height);
 
   let y=padding;
+
   for(let p of photos){
     const img=await loadImage(p);
     ctx.drawImage(img,50,y,photoWidth,photoHeight);
