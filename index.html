@@ -87,6 +87,7 @@ label{
 <label>VISUAL FILTER</label><br>
 <select id="basicFilter">
   <option value="none">Normal</option>
+  <option value="hd">HD (High Definition)</option>
   <option value="grayscale(100%)">B&W</option>
   <option value="sepia(70%)">Vintage</option>
   <option value="brightness(110%) saturate(130%)">Golden Hour</option>
@@ -168,7 +169,7 @@ const timerSelect = document.getElementById("timerSelect");
 const photoCountSelect = document.getElementById("photoCountSelect");
 const templateSelect = document.getElementById("templateSelect");
 
-let photos = [];
+let photos=[];
 
 /* CAMERA */
 async function initCamera(){
@@ -179,7 +180,11 @@ initCamera();
 
 /* BASIC FILTER PREVIEW */
 basicFilter.addEventListener("change",()=>{
-  video.style.filter = basicFilter.value;
+  if(basicFilter.value !== "hd"){
+    video.style.filter = basicFilter.value;
+  }else{
+    video.style.filter = "none";
+  }
 });
 
 /* START */
@@ -220,12 +225,36 @@ function capturePhoto(){
   canvas.height=video.videoHeight;
 
   const ctx=canvas.getContext("2d");
-  ctx.filter=basicFilter.value;
   ctx.drawImage(video,0,0);
+
+  if(basicFilter.value==="hd"){
+    applyHDFilter(ctx,canvas);
+  }else if(basicFilter.value!=="none"){
+    ctx.filter=basicFilter.value;
+    ctx.drawImage(canvas,0,0);
+  }
 
   applyAdvancedFilter(ctx,canvas,advancedFilter.value);
 
   photos.push(canvas.toDataURL("image/png"));
+}
+
+/* HD FILTER */
+function applyHDFilter(ctx,canvas){
+  const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const d=imageData.data;
+
+  for(let i=0;i<d.length;i+=4){
+    d[i]=Math.min(255,d[i]*1.15);
+    d[i+1]=Math.min(255,d[i+1]*1.15);
+    d[i+2]=Math.min(255,d[i+2]*1.15);
+  }
+
+  ctx.putImageData(imageData,0,0);
+
+  ctx.globalAlpha=0.3;
+  ctx.drawImage(canvas,0,0);
+  ctx.globalAlpha=1;
 }
 
 /* ADVANCED FILTER */
@@ -294,7 +323,7 @@ function applyAdvancedFilter(ctx,canvas,type){
   }
 }
 
-/* TEMPLATE COLOR */
+/* TEMPLATE */
 function getTemplateColor(){
   const map={
     pink:"#ffe6f2",
