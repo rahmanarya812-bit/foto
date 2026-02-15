@@ -35,19 +35,6 @@ video {
   border-radius: 25px;
 }
 
-/* FRAME GUIDE (SAMA DENGAN FOTO) */
-.frame-guide {
-  position: absolute;
-  width: 240px;
-  height: 320px; /* Rasio 3:4 */
-  border: 3px solid gold;
-  border-radius: 20px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
 /* FLASH */
 .flash {
   position: fixed;
@@ -102,7 +89,6 @@ button:hover { opacity: 0.85; }
 
   <div class="preview-wrapper">
     <video id="video" autoplay playsinline></video>
-    <div class="frame-guide"></div>
   </div>
 
   <div id="timer" style="font-size:42px;margin:10px;"></div>
@@ -189,7 +175,7 @@ function countdown(seconds) {
   });
 }
 
-/* CAPTURE (SAMA DENGAN FRAME GUIDE) */
+/* CAPTURE (CENTER CROP TANPA FRAME VISUAL) */
 function capturePhoto() {
   flash.classList.add("active");
   setTimeout(() => flash.classList.remove("active"), 200);
