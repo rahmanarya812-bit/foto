@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Photobooth App</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: white;
+  text-align: center;
+}
+
+.container {
+  padding: 20px;
+}
+
+video, canvas {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 20px;
+  margin-top: 10px;
+}
+
+.controls {
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 5px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.primary { background: #6366f1; color: white; }
+.secondary { background: #334155; color: white; }
+
+select {
+  padding: 8px;
+  border-radius: 8px;
+  margin: 5px;
+}
+
+.timer {
+  font-size: 50px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>📸 Photobooth</h1>
+
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <div class="timer" id="timer"></div>
+
+  <div class="controls">
+    <select id="filter">
+      <option value="none">Normal</option>
+      <option value="grayscale(1)">Black & White</option>
+      <option value="sepia(1)">Vintage</option>
+      <option value="contrast(1.5) saturate(1.2)">Cinematic</option>
+    </select>
+
+    <select id="delay">
+      <option value="0">No Timer</option>
+      <option value="3">3s</option>
+      <option value="5">5s</option>
+      <option value="10">10s</option>
+    </select>
+
+    <br/>
+
+    <button class="primary" onclick="startCapture()">Start Session</button>
+    <button class="secondary" onclick="downloadImage()">Download</button>
+  </div>
+</div>
+
+<script>
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const timerDisplay = document.getElementById("timer");
+const filterSelect = document.getElementById("filter");
+const delaySelect = document.getElementById("delay");
+
+let capturedImage = null;
+
+// Start Camera
+async function initCamera() {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
+}
+initCamera();
+
+// Apply Filter Live
+filterSelect.addEventListener("change", () => {
+  video.style.filter = filterSelect.value;
+});
+
+// Start Capture with Timer
+function startCapture() {
+  let delay = parseInt(delaySelect.value);
+  if (delay > 0) {
+    let countdown = delay;
+    timerDisplay.textContent = countdown;
+
+    const interval = setInterval(() => {
+      countdown--;
+      timerDisplay.textContent = countdown;
+
+      if (countdown <= 0) {
+        clearInterval(interval);
+        timerDisplay.textContent = "";
+        capturePhoto();
+      }
+    }, 1000);
+  } else {
+    capturePhoto();
+  }
+}
+
+// Capture Photo
+function capturePhoto() {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+
+  const ctx = canvas.getContext("2d");
+  ctx.filter = filterSelect.value;
+  ctx.drawImage(video, 0, 0);
+
+  capturedImage = canvas.toDataURL("image/png");
+  canvas.style.display = "block";
+  video.style.display = "none";
+}
+
+// Download Image
+function downloadImage() {
+  if (!capturedImage) return alert("No photo captured!");
+
+  const link = document.createElement("a");
+  link.href = capturedImage;
+  link.download = "photobooth.png";
+  link.click();
+}
+</script>
+
+</body>
+</html>
