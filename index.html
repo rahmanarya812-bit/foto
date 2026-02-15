@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Premium Photobox</title>
+<title>Premium Photobox - Full Original</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -22,15 +22,12 @@ h1 { margin: 20px 0; }
 
 .preview-wrapper {
   width: 320px;
-  height: 420px;
   margin: auto;
 }
 
 video {
   width: 100%;
-  height: 100%;
-  object-fit: contain; /* tidak zoom */
-  border-radius: 25px;
+  border-radius: 20px;
   background: black;
 }
 
@@ -52,7 +49,6 @@ video {
   100% { opacity: 0; }
 }
 
-/* CONTROLS */
 .controls { margin-top: 15px; }
 
 button, select, input {
@@ -60,7 +56,6 @@ button, select, input {
   padding: 8px 14px;
   border-radius: 12px;
   border: none;
-  font-size: 14px;
 }
 
 button {
@@ -89,7 +84,7 @@ button:hover { opacity: 0.85; }
     <video id="video" autoplay playsinline></video>
   </div>
 
-  <div id="timer" style="font-size:42px;margin:10px;"></div>
+  <div id="timer" style="font-size:40px;margin:10px;"></div>
 
   <div class="controls">
     <select id="template">
@@ -143,7 +138,7 @@ logoUpload.addEventListener("change", e => {
   reader.readAsDataURL(file);
 });
 
-/* START SESSION */
+/* START */
 async function startSession() {
   photos = [];
   finalCanvas.style.display = "none";
@@ -173,45 +168,21 @@ function countdown(seconds) {
   });
 }
 
-/* CAPTURE TANPA ZOOM & TANPA CROP */
+/* CAPTURE FULL ORIGINAL */
 function capturePhoto() {
   flash.classList.add("active");
   setTimeout(() => flash.classList.remove("active"), 200);
 
-  const outputWidth = 240;
-  const outputHeight = 320;
-
-  canvas.width = outputWidth;
-  canvas.height = outputHeight;
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
 
   const ctx = canvas.getContext("2d");
-
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, outputWidth, outputHeight);
-
-  const videoRatio = video.videoWidth / video.videoHeight;
-  const targetRatio = outputWidth / outputHeight;
-
-  let drawWidth, drawHeight, dx, dy;
-
-  if (videoRatio > targetRatio) {
-    drawHeight = outputHeight;
-    drawWidth = drawHeight * videoRatio;
-    dx = (outputWidth - drawWidth) / 2;
-    dy = 0;
-  } else {
-    drawWidth = outputWidth;
-    drawHeight = drawWidth / videoRatio;
-    dx = 0;
-    dy = (outputHeight - drawHeight) / 2;
-  }
-
-  ctx.drawImage(video, dx, dy, drawWidth, drawHeight);
+  ctx.drawImage(video, 0, 0);
 
   photos.push(canvas.toDataURL("image/png"));
 }
 
-/* TEMPLATE */
+/* TEMPLATE COLOR */
 function getTemplateColor() {
   const map = {
     pink: "#ffe6f2",
@@ -222,10 +193,22 @@ function getTemplateColor() {
   return map[templateSelect.value];
 }
 
-/* GENERATE STRIP */
+/* GENERATE STRIP TANPA DISTORSI */
 async function generateStrip() {
+
+  const padding = 40;
+  const gap = 40;
+
+  const photoWidth = 300;
+  const ratio = photos[0] ? 
+    (await loadImage(photos[0])).height /
+    (await loadImage(photos[0])).width
+    : 1;
+
+  const photoHeight = photoWidth * ratio;
+
   const width = 400;
-  const height = 1400;
+  const height = padding + (photoHeight + gap) * 4 + 120;
 
   finalCanvas.width = width;
   finalCanvas.height = height;
@@ -235,7 +218,7 @@ async function generateStrip() {
   ctx.fillStyle = getTemplateColor();
   ctx.fillRect(0, 0, width, height);
 
-  let y = 80;
+  let y = padding;
 
   for (let photo of photos) {
     const img = await loadImage(photo);
@@ -245,18 +228,13 @@ async function generateStrip() {
     ctx.shadowOffsetY = 10;
 
     ctx.fillStyle = "#fff";
-    ctx.fillRect(70, y, 260, 360);
+    ctx.fillRect(50, y, photoWidth, photoHeight);
 
     ctx.shadowColor = "transparent";
 
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(80, y + 10, 240, 320, 20);
-    ctx.clip();
-    ctx.drawImage(img, 80, y + 10, 240, 320);
-    ctx.restore();
+    ctx.drawImage(img, 50, y, photoWidth, photoHeight);
 
-    y += 420;
+    y += photoHeight + gap;
   }
 
   const date = new Date().toLocaleDateString();
@@ -286,7 +264,7 @@ function loadImage(src) {
 
 function downloadStrip() {
   const link = document.createElement("a");
-  link.download = "premium-photobox.png";
+  link.download = "photobox-full-original.png";
   link.href = finalCanvas.toDataURL("image/png");
   link.click();
 }
