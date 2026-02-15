@@ -1,156 +1,303 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Photobooth App</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premium Photobox</title>
 
 <style>
+* { box-sizing: border-box; }
+
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0f172a;
+  font-family: 'Segoe UI', sans-serif;
+  background: #0f0f0f;
   color: white;
   text-align: center;
+}
+
+h1 {
+  margin: 20px 0;
 }
 
 .container {
   padding: 20px;
 }
 
-video, canvas {
+/* PREVIEW WRAPPER */
+.preview-wrapper {
+  position: relative;
+  width: 320px;
+  height: 420px;
+  margin: auto;
+}
+
+video {
   width: 100%;
-  max-width: 400px;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 25px;
+}
+
+/* KOTAK KUNING (sedang & tengah) */
+.frame-guide {
+  position: absolute;
+  width: 220px;
+  height: 300px;
+  border: 3px solid gold;
   border-radius: 20px;
-  margin-top: 10px;
+
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  pointer-events: none;
 }
 
+/* FLASH EFFECT */
+.flash {
+  position: fixed;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flash.active {
+  animation: flashAnim 0.3s ease;
+}
+
+@keyframes flashAnim {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* CONTROLS */
 .controls {
-  margin-top: 20px;
+  margin-top: 15px;
 }
 
-button {
-  padding: 10px 20px;
-  margin: 5px;
+button, select, input {
+  margin: 6px;
+  padding: 8px 14px;
+  border-radius: 12px;
   border: none;
-  border-radius: 10px;
-  cursor: pointer;
   font-size: 14px;
 }
 
-.primary { background: #6366f1; color: white; }
-.secondary { background: #334155; color: white; }
-
-select {
-  padding: 8px;
-  border-radius: 8px;
-  margin: 5px;
+button {
+  background: #ff4da6;
+  color: white;
+  cursor: pointer;
 }
 
-.timer {
-  font-size: 50px;
-  font-weight: bold;
-  margin-top: 10px;
+button:hover {
+  opacity: 0.85;
+}
+
+/* RESULT STRIP */
+#finalCanvas {
+  display: none;
+  margin-top: 25px;
+  border-radius: 20px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6);
 }
 </style>
 </head>
-
 <body>
 
+<h1>✨ Premium Photobox</h1>
+
 <div class="container">
-  <h1>📸 Photobooth</h1>
 
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas" style="display:none;"></canvas>
+  <div class="preview-wrapper">
+    <video id="video" autoplay playsinline></video>
+    <div class="frame-guide"></div>
+  </div>
 
-  <div class="timer" id="timer"></div>
+  <div id="timer" style="font-size:42px;margin:10px;"></div>
 
   <div class="controls">
-    <select id="filter">
-      <option value="none">Normal</option>
-      <option value="grayscale(1)">Black & White</option>
-      <option value="sepia(1)">Vintage</option>
-      <option value="contrast(1.5) saturate(1.2)">Cinematic</option>
+    <select id="template">
+      <option value="pink">Pink</option>
+      <option value="black">Black</option>
+      <option value="retro">Retro</option>
+      <option value="minimal">Minimal</option>
     </select>
 
-    <select id="delay">
-      <option value="0">No Timer</option>
-      <option value="3">3s</option>
-      <option value="5">5s</option>
-      <option value="10">10s</option>
-    </select>
+    <input type="file" id="logoUpload" accept="image/*">
 
-    <br/>
-
-    <button class="primary" onclick="startCapture()">Start Session</button>
-    <button class="secondary" onclick="downloadImage()">Download</button>
+    <button onclick="startSession()">Start 4 Photos</button>
+    <button onclick="downloadStrip()">Download</button>
   </div>
+
+  <canvas id="canvas" hidden></canvas>
+  <canvas id="finalCanvas"></canvas>
+
 </div>
+
+<div class="flash" id="flash"></div>
 
 <script>
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
+const finalCanvas = document.getElementById("finalCanvas");
 const timerDisplay = document.getElementById("timer");
-const filterSelect = document.getElementById("filter");
-const delaySelect = document.getElementById("delay");
+const templateSelect = document.getElementById("template");
+const flash = document.getElementById("flash");
+const logoUpload = document.getElementById("logoUpload");
 
-let capturedImage = null;
+let photos = [];
+let logoImage = null;
 
-// Start Camera
+/* INIT CAMERA */
 async function initCamera() {
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
   video.srcObject = stream;
 }
 initCamera();
 
-// Apply Filter Live
-filterSelect.addEventListener("change", () => {
-  video.style.filter = filterSelect.value;
+/* LOGO UPLOAD */
+logoUpload.addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    logoImage = new Image();
+    logoImage.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
 });
 
-// Start Capture with Timer
-function startCapture() {
-  let delay = parseInt(delaySelect.value);
-  if (delay > 0) {
-    let countdown = delay;
-    timerDisplay.textContent = countdown;
+/* START SESSION */
+async function startSession() {
+  photos = [];
+  finalCanvas.style.display = "none";
 
-    const interval = setInterval(() => {
-      countdown--;
-      timerDisplay.textContent = countdown;
-
-      if (countdown <= 0) {
-        clearInterval(interval);
-        timerDisplay.textContent = "";
-        capturePhoto();
-      }
-    }, 1000);
-  } else {
+  for (let i = 0; i < 4; i++) {
+    await countdown(3);
     capturePhoto();
   }
+
+  await generateStrip();
 }
 
-// Capture Photo
+/* COUNTDOWN */
+function countdown(seconds) {
+  return new Promise(resolve => {
+    let count = seconds;
+    timerDisplay.textContent = count;
+    const interval = setInterval(() => {
+      count--;
+      timerDisplay.textContent = count;
+      if (count <= 0) {
+        clearInterval(interval);
+        timerDisplay.textContent = "";
+        resolve();
+      }
+    }, 1000);
+  });
+}
+
+/* CAPTURE */
 function capturePhoto() {
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  flash.classList.add("active");
+  setTimeout(() => flash.classList.remove("active"), 200);
 
+  canvas.width = 300;
+  canvas.height = 400;
   const ctx = canvas.getContext("2d");
-  ctx.filter = filterSelect.value;
-  ctx.drawImage(video, 0, 0);
 
-  capturedImage = canvas.toDataURL("image/png");
-  canvas.style.display = "block";
-  video.style.display = "none";
+  // Ambil area sesuai frame tengah
+  const frameWidth = 220;
+  const frameHeight = 300;
+
+  const sx = (video.videoWidth - frameWidth) / 2;
+  const sy = (video.videoHeight - frameHeight) / 2;
+
+  ctx.drawImage(video, sx, sy, frameWidth, frameHeight, 0, 0, 300, 400);
+
+  photos.push(canvas.toDataURL("image/png"));
 }
 
-// Download Image
-function downloadImage() {
-  if (!capturedImage) return alert("No photo captured!");
+/* TEMPLATE COLOR */
+function getTemplateColor() {
+  const map = {
+    pink: "#ffe6f2",
+    black: "#111111",
+    retro: "#f5deb3",
+    minimal: "#ffffff"
+  };
+  return map[templateSelect.value];
+}
 
+/* GENERATE STRIP */
+async function generateStrip() {
+  const width = 400;
+  const height = 1400;
+
+  finalCanvas.width = width;
+  finalCanvas.height = height;
+
+  const ctx = finalCanvas.getContext("2d");
+
+  ctx.fillStyle = getTemplateColor();
+  ctx.fillRect(0, 0, width, height);
+
+  let y = 80;
+
+  for (let photo of photos) {
+    const img = await loadImage(photo);
+
+    ctx.shadowColor = "rgba(0,0,0,0.25)";
+    ctx.shadowBlur = 25;
+    ctx.shadowOffsetY = 10;
+
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(50, y, 300, 400);
+
+    ctx.shadowColor = "transparent";
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(60, y + 10, 280, 380, 20);
+    ctx.clip();
+    ctx.drawImage(img, 60, y + 10, 280, 380);
+    ctx.restore();
+
+    y += 450;
+  }
+
+  const date = new Date().toLocaleDateString();
+  ctx.fillStyle = "#000";
+  ctx.font = "18px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(date, width / 2, height - 80);
+
+  if (logoImage) {
+    await new Promise(res => {
+      logoImage.onload = res;
+      if (logoImage.complete) res();
+    });
+    ctx.drawImage(logoImage, width / 2 - 50, height - 140, 100, 50);
+  }
+
+  finalCanvas.style.display = "block";
+}
+
+function loadImage(src) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.src = src;
+  });
+}
+
+/* DOWNLOAD */
+function downloadStrip() {
   const link = document.createElement("a");
-  link.href = capturedImage;
-  link.download = "photobooth.png";
+  link.download = "premium-photobox.png";
+  link.href = finalCanvas.toDataURL("image/png");
   link.click();
 }
 </script>
