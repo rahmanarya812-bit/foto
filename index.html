@@ -3,158 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Premium Photobox</title>
+<title>Premium Photobox Pro</title>
 
 <style>
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: #0f0f0f;
-  color: white;
-  text-align: center;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Segoe UI, sans-serif;
+  background:#0f0f0f;
+  color:white;
+  text-align:center;
 }
-
-h1 { margin: 20px 0; }
-
-.container { padding: 20px; }
-
-.preview-wrapper {
-  width: 320px;
-  margin: auto;
-  position: relative;
+h1{margin:20px 0}
+.container{padding:20px}
+.preview-wrapper{
+  width:320px;
+  margin:auto;
+  position:relative;
 }
-
-video {
-  width: 100%;
-  border-radius: 20px;
-  background: black;
-  transition: filter 0.3s ease;
+video{
+  width:100%;
+  border-radius:20px;
+  background:black;
+  transition:filter .3s;
 }
-
-.timer-display {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 60px;
-  font-weight: bold;
-  color: white;
-  text-shadow: 0 0 20px black;
-  pointer-events: none;
+.timer-display{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:60px;
+  font-weight:bold;
+  text-shadow:0 0 20px black;
 }
-
-.controls { margin-top: 15px; }
-
-select, button {
-  margin: 6px;
-  padding: 8px 14px;
-  border-radius: 12px;
-  border: none;
-  font-size: 14px;
+.controls{margin-top:15px}
+select,button{
+  margin:6px;
+  padding:8px 14px;
+  border-radius:12px;
+  border:none;
 }
-
-button {
-  background: #ff4da6;
-  color: white;
-  cursor: pointer;
+button{
+  background:#ff4da6;
+  color:white;
+  cursor:pointer;
 }
-
-button:hover { opacity: 0.85; }
-
-.flash {
-  position: fixed;
-  inset: 0;
-  background: white;
-  opacity: 0;
-  pointer-events: none;
+button:hover{opacity:.85}
+.flash{
+  position:fixed;
+  inset:0;
+  background:white;
+  opacity:0;
+  pointer-events:none;
 }
-
-.flash.active {
-  animation: flashAnim 0.3s ease;
+.flash.active{animation:flash .3s}
+@keyframes flash{0%{opacity:1}100%{opacity:0}}
+#finalCanvas{
+  display:none;
+  margin-top:25px;
+  border-radius:20px;
+  box-shadow:0 30px 60px rgba(0,0,0,.6);
 }
-
-@keyframes flashAnim {
-  0% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-#finalCanvas {
-  display: none;
-  margin-top: 25px;
-  border-radius: 20px;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+label{
+  font-size:12px;
+  color:#facc15;
 }
 </style>
 </head>
 <body>
 
-<h1>✨ Premium Photobox</h1>
+<h1>✨ Premium Photobox Pro</h1>
 
 <div class="container">
 
-  <div class="preview-wrapper">
-    <video id="video" autoplay playsinline></video>
-    <div id="timerDisplay" class="timer-display"></div>
-  </div>
+<div class="preview-wrapper">
+  <video id="video" autoplay playsinline></video>
+  <div id="timerDisplay" class="timer-display"></div>
+</div>
 
-  <div class="controls">
+<div class="controls">
 
-    <!-- VISUAL FILTER -->
-    <div>
-      <label style="font-size:12px;color:#facc15;">VISUAL FILTER</label><br>
-      <select id="filterSelect">
-        <option value="none">Normal (Clean)</option>
-        <option value="grayscale(100%) contrast(110%)">B&W (Classic Noir)</option>
-        <option value="sepia(60%) contrast(110%) saturate(120%)">Vintage (90s Film)</option>
-        <option value="brightness(110%) saturate(130%) hue-rotate(-10deg)">Golden Hour (Warm)</option>
-        <option value="contrast(120%) saturate(110%) hue-rotate(10deg)">Cinematic (Cool)</option>
-      </select>
-    </div>
+<label>VISUAL FILTER</label><br>
+<select id="basicFilter">
+  <option value="none">Normal</option>
+  <option value="grayscale(100%)">B&W</option>
+  <option value="sepia(70%)">Vintage</option>
+  <option value="brightness(110%) saturate(130%)">Golden Hour</option>
+</select>
+<br>
 
-    <!-- TIMER -->
-    <div>
-      <label style="font-size:12px;color:#facc15;">TIMER</label><br>
-      <select id="timerSelect">
-        <option value="3">3s</option>
-        <option value="5">5s</option>
-        <option value="10">10s</option>
-      </select>
-    </div>
+<label>ADVANCED FILTER</label><br>
+<select id="advancedFilter">
+  <option value="none">None</option>
+  <optgroup label="Blur">
+    <option value="gaussian">Gaussian Blur</option>
+    <option value="motion">Motion Blur</option>
+  </optgroup>
+  <optgroup label="Artistic">
+    <option value="poster">Poster</option>
+    <option value="watercolor">Watercolor</option>
+  </optgroup>
+  <optgroup label="Stylize">
+    <option value="emboss">Emboss</option>
+    <option value="edges">Find Edges</option>
+  </optgroup>
+  <optgroup label="Pixelate">
+    <option value="mosaic">Mosaic</option>
+  </optgroup>
+  <optgroup label="Beauty">
+    <option value="smooth">Skin Smooth</option>
+  </optgroup>
+</select>
+<br>
 
-    <!-- NUMBER OF PHOTOS -->
-    <div>
-      <label style="font-size:12px;color:#facc15;">NUMBER OF PHOTOS</label><br>
-      <select id="photoCountSelect">
-        <option value="2">2 Photos</option>
-        <option value="3">3 Photos</option>
-        <option value="4" selected>4 Photos</option>
-        <option value="5">5 Photos</option>
-      </select>
-    </div>
+<label>TIMER</label><br>
+<select id="timerSelect">
+  <option value="3">3s</option>
+  <option value="5">5s</option>
+  <option value="10">10s</option>
+</select>
+<br>
 
-    <!-- TEMPLATE -->
-    <div>
-      <label style="font-size:12px;color:#facc15;">TEMPLATE</label><br>
-      <select id="templateSelect">
-        <option value="pink">Pink</option>
-        <option value="black">Black</option>
-        <option value="retro">Retro</option>
-        <option value="minimal" selected>Minimal</option>
-      </select>
-    </div>
+<label>NUMBER OF PHOTOS</label><br>
+<select id="photoCountSelect">
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4" selected>4</option>
+  <option value="5">5</option>
+</select>
+<br>
 
-    <br>
+<label>TEMPLATE</label><br>
+<select id="templateSelect">
+  <option value="pink">Pink</option>
+  <option value="black">Black</option>
+  <option value="retro">Retro</option>
+  <option value="minimal" selected>Minimal</option>
+</select>
+<br>
 
-    <button onclick="startSession()">Start Photos</button>
-    <button onclick="downloadStrip()">Download</button>
+<button onclick="startSession()">Start Photos</button>
+<button onclick="downloadStrip()">Download</button>
 
-  </div>
+</div>
 
-  <canvas id="canvas" hidden></canvas>
-  <canvas id="finalCanvas"></canvas>
+<canvas id="canvas" hidden></canvas>
+<canvas id="finalCanvas"></canvas>
 
 </div>
 
@@ -165,35 +160,37 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const finalCanvas = document.getElementById("finalCanvas");
 const flash = document.getElementById("flash");
-const filterSelect = document.getElementById("filterSelect");
-const timerSelect = document.getElementById("timerSelect");
 const timerDisplay = document.getElementById("timerDisplay");
+
+const basicFilter = document.getElementById("basicFilter");
+const advancedFilter = document.getElementById("advancedFilter");
+const timerSelect = document.getElementById("timerSelect");
 const photoCountSelect = document.getElementById("photoCountSelect");
 const templateSelect = document.getElementById("templateSelect");
 
 let photos = [];
 
-/* APPLY FILTER */
-filterSelect.addEventListener("change", () => {
-  video.style.filter = filterSelect.value;
-});
-
-/* INIT CAMERA */
-async function initCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+/* CAMERA */
+async function initCamera(){
+  const stream = await navigator.mediaDevices.getUserMedia({video:true});
   video.srcObject = stream;
 }
 initCamera();
 
-/* START SESSION */
-async function startSession() {
-  photos = [];
-  finalCanvas.style.display = "none";
+/* BASIC FILTER PREVIEW */
+basicFilter.addEventListener("change",()=>{
+  video.style.filter = basicFilter.value;
+});
 
-  const delay = parseInt(timerSelect.value);
-  const photoCount = parseInt(photoCountSelect.value);
+/* START */
+async function startSession(){
+  photos=[];
+  finalCanvas.style.display="none";
 
-  for (let i = 0; i < photoCount; i++) {
+  const delay=parseInt(timerSelect.value);
+  const count=parseInt(photoCountSelect.value);
+
+  for(let i=0;i<count;i++){
     await countdown(delay);
     capturePhoto();
   }
@@ -202,104 +199,155 @@ async function startSession() {
 }
 
 /* COUNTDOWN */
-function countdown(seconds) {
-  return new Promise(resolve => {
-    let count = seconds;
-    timerDisplay.textContent = count;
-
-    const interval = setInterval(() => {
-      count--;
-      timerDisplay.textContent = count > 0 ? count : "";
-      if (count <= 0) {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 1000);
+function countdown(sec){
+  return new Promise(resolve=>{
+    let c=sec;
+    timerDisplay.textContent=c;
+    const i=setInterval(()=>{
+      c--;
+      timerDisplay.textContent=c>0?c:"";
+      if(c<=0){clearInterval(i);resolve();}
+    },1000);
   });
 }
 
-/* CAPTURE FULL ORIGINAL */
-function capturePhoto() {
+/* CAPTURE */
+function capturePhoto(){
   flash.classList.add("active");
-  setTimeout(() => flash.classList.remove("active"), 200);
+  setTimeout(()=>flash.classList.remove("active"),200);
 
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  canvas.width=video.videoWidth;
+  canvas.height=video.videoHeight;
 
-  const ctx = canvas.getContext("2d");
-  ctx.filter = filterSelect.value;
-  ctx.drawImage(video, 0, 0);
+  const ctx=canvas.getContext("2d");
+  ctx.filter=basicFilter.value;
+  ctx.drawImage(video,0,0);
+
+  applyAdvancedFilter(ctx,canvas,advancedFilter.value);
 
   photos.push(canvas.toDataURL("image/png"));
 }
 
+/* ADVANCED FILTER */
+function applyAdvancedFilter(ctx,canvas,type){
+  if(type==="none") return;
+
+  const imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  const d=imgData.data;
+
+  if(type==="poster"){
+    for(let i=0;i<d.length;i+=4){
+      d[i]=d[i]>128?255:0;
+      d[i+1]=d[i+1]>128?255:0;
+      d[i+2]=d[i+2]>128?255:0;
+    }
+    ctx.putImageData(imgData,0,0);
+  }
+
+  if(type==="watercolor"){
+    ctx.filter="blur(2px)";
+    ctx.drawImage(canvas,0,0);
+  }
+
+  if(type==="gaussian"){
+    ctx.filter="blur(6px)";
+    ctx.drawImage(canvas,0,0);
+  }
+
+  if(type==="motion"){
+    ctx.globalAlpha=0.2;
+    for(let i=0;i<8;i++){
+      ctx.drawImage(canvas,i,0);
+    }
+    ctx.globalAlpha=1;
+  }
+
+  if(type==="emboss"){
+    for(let i=0;i<d.length;i+=4){
+      d[i]+=20; d[i+1]+=20; d[i+2]+=20;
+    }
+    ctx.putImageData(imgData,0,0);
+  }
+
+  if(type==="edges"){
+    for(let i=0;i<d.length;i+=4){
+      const avg=(d[i]+d[i+1]+d[i+2])/3;
+      d[i]=d[i+1]=d[i+2]=avg>120?255:0;
+    }
+    ctx.putImageData(imgData,0,0);
+  }
+
+  if(type==="mosaic"){
+    const size=10;
+    for(let y=0;y<canvas.height;y+=size){
+      for(let x=0;x<canvas.width;x+=size){
+        const px=ctx.getImageData(x,y,1,1).data;
+        ctx.fillStyle=`rgb(${px[0]},${px[1]},${px[2]})`;
+        ctx.fillRect(x,y,size,size);
+      }
+    }
+  }
+
+  if(type==="smooth"){
+    ctx.filter="blur(3px)";
+    ctx.drawImage(canvas,0,0);
+  }
+}
+
 /* TEMPLATE COLOR */
-function getTemplateColor() {
-  const map = {
-    pink: "#ffe6f2",
-    black: "#111111",
-    retro: "#f5deb3",
-    minimal: "#ffffff"
+function getTemplateColor(){
+  const map={
+    pink:"#ffe6f2",
+    black:"#111",
+    retro:"#f5deb3",
+    minimal:"#ffffff"
   };
   return map[templateSelect.value];
 }
 
-/* GENERATE STRIP */
-async function generateStrip() {
+/* STRIP */
+async function generateStrip(){
+  const padding=40;
+  const gap=40;
+  const photoWidth=300;
 
-  const padding = 40;
-  const gap = 40;
-  const photoWidth = 300;
+  const first=await loadImage(photos[0]);
+  const ratio=first.height/first.width;
+  const photoHeight=photoWidth*ratio;
 
-  const firstImg = await loadImage(photos[0]);
-  const ratio = firstImg.height / firstImg.width;
-  const photoHeight = photoWidth * ratio;
+  const width=400;
+  const height=padding+(photoHeight+gap)*photos.length+100;
 
-  const width = 400;
-  const height = padding + (photoHeight + gap) * photos.length + 120;
+  finalCanvas.width=width;
+  finalCanvas.height=height;
 
-  finalCanvas.width = width;
-  finalCanvas.height = height;
+  const ctx=finalCanvas.getContext("2d");
+  ctx.fillStyle=getTemplateColor();
+  ctx.fillRect(0,0,width,height);
 
-  const ctx = finalCanvas.getContext("2d");
+  let y=padding;
 
-  ctx.fillStyle = getTemplateColor();
-  ctx.fillRect(0, 0, width, height);
-
-  let y = padding;
-
-  for (let photo of photos) {
-    const img = await loadImage(photo);
-
-    ctx.shadowColor = "rgba(0,0,0,0.25)";
-    ctx.shadowBlur = 25;
-    ctx.shadowOffsetY = 10;
-
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(50, y, photoWidth, photoHeight);
-
-    ctx.shadowColor = "transparent";
-
-    ctx.drawImage(img, 50, y, photoWidth, photoHeight);
-
-    y += photoHeight + gap;
+  for(let p of photos){
+    const img=await loadImage(p);
+    ctx.drawImage(img,50,y,photoWidth,photoHeight);
+    y+=photoHeight+gap;
   }
 
-  finalCanvas.style.display = "block";
+  finalCanvas.style.display="block";
 }
 
-function loadImage(src) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.src = src;
+function loadImage(src){
+  return new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>res(img);
+    img.src=src;
   });
 }
 
-function downloadStrip() {
-  const link = document.createElement("a");
-  link.download = "photobox-final.png";
-  link.href = finalCanvas.toDataURL("image/png");
+function downloadStrip(){
+  const link=document.createElement("a");
+  link.download="photobox-pro.png";
+  link.href=finalCanvas.toDataURL("image/png");
   link.click();
 }
 </script>
