@@ -16,15 +16,11 @@ body {
   text-align: center;
 }
 
-h1 {
-  margin: 20px 0;
-}
+h1 { margin: 20px 0; }
 
-.container {
-  padding: 20px;
-}
+.container { padding: 20px; }
 
-/* PREVIEW WRAPPER */
+/* PREVIEW */
 .preview-wrapper {
   position: relative;
   width: 320px;
@@ -39,22 +35,20 @@ video {
   border-radius: 25px;
 }
 
-/* KOTAK KUNING (sedang & tengah) */
+/* FRAME GUIDE (SAMA DENGAN FOTO) */
 .frame-guide {
   position: absolute;
-  width: 220px;
-  height: 300px;
+  width: 240px;
+  height: 320px; /* Rasio 3:4 */
   border: 3px solid gold;
   border-radius: 20px;
-
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-
   pointer-events: none;
 }
 
-/* FLASH EFFECT */
+/* FLASH */
 .flash {
   position: fixed;
   inset: 0;
@@ -73,9 +67,7 @@ video {
 }
 
 /* CONTROLS */
-.controls {
-  margin-top: 15px;
-}
+.controls { margin-top: 15px; }
 
 button, select, input {
   margin: 6px;
@@ -91,11 +83,9 @@ button {
   cursor: pointer;
 }
 
-button:hover {
-  opacity: 0.85;
-}
+button:hover { opacity: 0.85; }
 
-/* RESULT STRIP */
+/* RESULT */
 #finalCanvas {
   display: none;
   margin-top: 25px;
@@ -150,14 +140,14 @@ const logoUpload = document.getElementById("logoUpload");
 let photos = [];
 let logoImage = null;
 
-/* INIT CAMERA */
+/* CAMERA */
 async function initCamera() {
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
   video.srcObject = stream;
 }
 initCamera();
 
-/* LOGO UPLOAD */
+/* LOGO */
 logoUpload.addEventListener("change", e => {
   const file = e.target.files[0];
   if (!file) return;
@@ -169,7 +159,7 @@ logoUpload.addEventListener("change", e => {
   reader.readAsDataURL(file);
 });
 
-/* START SESSION */
+/* START */
 async function startSession() {
   photos = [];
   finalCanvas.style.display = "none";
@@ -199,28 +189,28 @@ function countdown(seconds) {
   });
 }
 
-/* CAPTURE */
+/* CAPTURE (SAMA DENGAN FRAME GUIDE) */
 function capturePhoto() {
   flash.classList.add("active");
   setTimeout(() => flash.classList.remove("active"), 200);
 
-  canvas.width = 300;
-  canvas.height = 400;
-  const ctx = canvas.getContext("2d");
+  const frameWidth = 240;
+  const frameHeight = 320;
 
-  // Ambil area sesuai frame tengah
-  const frameWidth = 220;
-  const frameHeight = 300;
+  canvas.width = frameWidth;
+  canvas.height = frameHeight;
+
+  const ctx = canvas.getContext("2d");
 
   const sx = (video.videoWidth - frameWidth) / 2;
   const sy = (video.videoHeight - frameHeight) / 2;
 
-  ctx.drawImage(video, sx, sy, frameWidth, frameHeight, 0, 0, 300, 400);
+  ctx.drawImage(video, sx, sy, frameWidth, frameHeight, 0, 0, frameWidth, frameHeight);
 
   photos.push(canvas.toDataURL("image/png"));
 }
 
-/* TEMPLATE COLOR */
+/* TEMPLATE */
 function getTemplateColor() {
   const map = {
     pink: "#ffe6f2",
@@ -231,7 +221,7 @@ function getTemplateColor() {
   return map[templateSelect.value];
 }
 
-/* GENERATE STRIP */
+/* STRIP */
 async function generateStrip() {
   const width = 400;
   const height = 1400;
@@ -254,18 +244,18 @@ async function generateStrip() {
     ctx.shadowOffsetY = 10;
 
     ctx.fillStyle = "#fff";
-    ctx.fillRect(50, y, 300, 400);
+    ctx.fillRect(70, y, 260, 360);
 
     ctx.shadowColor = "transparent";
 
     ctx.save();
     ctx.beginPath();
-    ctx.roundRect(60, y + 10, 280, 380, 20);
+    ctx.roundRect(80, y + 10, 240, 320, 20);
     ctx.clip();
-    ctx.drawImage(img, 60, y + 10, 280, 380);
+    ctx.drawImage(img, 80, y + 10, 240, 320);
     ctx.restore();
 
-    y += 450;
+    y += 420;
   }
 
   const date = new Date().toLocaleDateString();
@@ -293,7 +283,6 @@ function loadImage(src) {
   });
 }
 
-/* DOWNLOAD */
 function downloadStrip() {
   const link = document.createElement("a");
   link.download = "premium-photobox.png";
