@@ -20,9 +20,7 @@ h1 { margin: 20px 0; }
 
 .container { padding: 20px; }
 
-/* PREVIEW */
 .preview-wrapper {
-  position: relative;
   width: 320px;
   height: 420px;
   margin: auto;
@@ -31,8 +29,9 @@ h1 { margin: 20px 0; }
 video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain; /* tidak zoom */
   border-radius: 25px;
+  background: black;
 }
 
 /* FLASH */
@@ -72,7 +71,6 @@ button {
 
 button:hover { opacity: 0.85; }
 
-/* RESULT */
 #finalCanvas {
   display: none;
   margin-top: 25px;
@@ -126,7 +124,7 @@ const logoUpload = document.getElementById("logoUpload");
 let photos = [];
 let logoImage = null;
 
-/* CAMERA */
+/* INIT CAMERA */
 async function initCamera() {
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
   video.srcObject = stream;
@@ -145,7 +143,7 @@ logoUpload.addEventListener("change", e => {
   reader.readAsDataURL(file);
 });
 
-/* START */
+/* START SESSION */
 async function startSession() {
   photos = [];
   finalCanvas.style.display = "none";
@@ -175,23 +173,40 @@ function countdown(seconds) {
   });
 }
 
-/* CAPTURE (CENTER CROP TANPA FRAME VISUAL) */
+/* CAPTURE TANPA ZOOM & TANPA CROP */
 function capturePhoto() {
   flash.classList.add("active");
   setTimeout(() => flash.classList.remove("active"), 200);
 
-  const frameWidth = 240;
-  const frameHeight = 320;
+  const outputWidth = 240;
+  const outputHeight = 320;
 
-  canvas.width = frameWidth;
-  canvas.height = frameHeight;
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
 
   const ctx = canvas.getContext("2d");
 
-  const sx = (video.videoWidth - frameWidth) / 2;
-  const sy = (video.videoHeight - frameHeight) / 2;
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, outputWidth, outputHeight);
 
-  ctx.drawImage(video, sx, sy, frameWidth, frameHeight, 0, 0, frameWidth, frameHeight);
+  const videoRatio = video.videoWidth / video.videoHeight;
+  const targetRatio = outputWidth / outputHeight;
+
+  let drawWidth, drawHeight, dx, dy;
+
+  if (videoRatio > targetRatio) {
+    drawHeight = outputHeight;
+    drawWidth = drawHeight * videoRatio;
+    dx = (outputWidth - drawWidth) / 2;
+    dy = 0;
+  } else {
+    drawWidth = outputWidth;
+    drawHeight = drawWidth / videoRatio;
+    dx = 0;
+    dy = (outputHeight - drawHeight) / 2;
+  }
+
+  ctx.drawImage(video, dx, dy, drawWidth, drawHeight);
 
   photos.push(canvas.toDataURL("image/png"));
 }
@@ -207,7 +222,7 @@ function getTemplateColor() {
   return map[templateSelect.value];
 }
 
-/* STRIP */
+/* GENERATE STRIP */
 async function generateStrip() {
   const width = 400;
   const height = 1400;
