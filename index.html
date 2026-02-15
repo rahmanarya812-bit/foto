@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Photobox iOS Glass</title>
+<title>Photobox HD Fix</title>
 
 <style>
 *{box-sizing:border-box}
@@ -78,7 +78,6 @@ video{
 }
 
 select{
-  appearance:none;
   padding:12px;
   border-radius:20px;
   border:1px solid rgba(255,255,255,0.08);
@@ -86,16 +85,6 @@ select{
   color:white;
   font-size:14px;
   outline:none;
-  transition:all .25s ease;
-}
-
-select:hover{
-  background:rgba(30,30,30,0.95);
-}
-
-select:focus{
-  border:1px solid #ff4da6;
-  box-shadow:0 0 0 3px rgba(255,77,166,0.25);
 }
 
 .button-group{
@@ -111,7 +100,7 @@ button{
   border:none;
   font-weight:600;
   cursor:pointer;
-  transition:all .25s ease;
+  transition:.25s;
 }
 
 button:first-child{
@@ -158,7 +147,7 @@ button:hover{
 
 <div class="container">
 
-<h1>✨ Photobox</h1>
+<h1>✨ Photobox HD</h1>
 
 <div class="preview-wrapper">
   <video id="video" autoplay playsinline></video>
@@ -166,16 +155,6 @@ button:hover{
 </div>
 
 <div class="controls">
-
-<div class="control-group">
-<label>VISUAL FILTER</label>
-<select id="filterSelect">
-<option value="none">Normal</option>
-<option value="grayscale(100%)">B&W</option>
-<option value="sepia(70%)">Vintage</option>
-<option value="brightness(110%) saturate(130%)">Golden Hour</option>
-</select>
-</div>
 
 <div class="control-group">
 <label>TIMER</label>
@@ -193,16 +172,6 @@ button:hover{
 <option value="3">3</option>
 <option value="4" selected>4</option>
 <option value="5">5</option>
-</select>
-</div>
-
-<div class="control-group">
-<label>TEMPLATE</label>
-<select id="templateSelect">
-<option value="pink">Pink</option>
-<option value="black">Black</option>
-<option value="retro">Retro</option>
-<option value="minimal" selected>Minimal</option>
 </select>
 </div>
 
@@ -226,24 +195,33 @@ const canvas=document.getElementById("canvas");
 const finalCanvas=document.getElementById("finalCanvas");
 const flash=document.getElementById("flash");
 const timerDisplay=document.getElementById("timerDisplay");
-const filterSelect=document.getElementById("filterSelect");
 const timerSelect=document.getElementById("timerSelect");
 const photoCountSelect=document.getElementById("photoCountSelect");
-const templateSelect=document.getElementById("templateSelect");
 
 let photos=[];
 
-/* CAMERA */
+/* CAMERA HD + AUTOFOCUS */
 async function initCamera(){
-  const stream=await navigator.mediaDevices.getUserMedia({video:true});
+  const stream=await navigator.mediaDevices.getUserMedia({
+    video:{
+      width:{ideal:1920},
+      height:{ideal:1080},
+      facingMode:"user"
+    }
+  });
+
   video.srcObject=stream;
+
+  const track=stream.getVideoTracks()[0];
+  const capabilities=track.getCapabilities();
+
+  if(capabilities.focusMode){
+    track.applyConstraints({
+      advanced:[{focusMode:"continuous"}]
+    });
+  }
 }
 initCamera();
-
-/* FILTER PREVIEW */
-filterSelect.addEventListener("change",()=>{
-  video.style.filter=filterSelect.value;
-});
 
 /* START */
 async function startSession(){
@@ -255,6 +233,7 @@ async function startSession(){
 
   for(let i=0;i<count;i++){
     await countdown(delay);
+    await new Promise(r=>setTimeout(r,300)); // anti blur delay
     capturePhoto();
   }
 
@@ -274,7 +253,7 @@ function countdown(sec){
   });
 }
 
-/* CAPTURE */
+/* CAPTURE FULL ORIGINAL */
 function capturePhoto(){
   flash.classList.add("active");
   setTimeout(()=>flash.classList.remove("active"),200);
@@ -283,21 +262,9 @@ function capturePhoto(){
   canvas.height=video.videoHeight;
 
   const ctx=canvas.getContext("2d");
-  ctx.filter=filterSelect.value;
   ctx.drawImage(video,0,0);
 
   photos.push(canvas.toDataURL("image/png"));
-}
-
-/* TEMPLATE */
-function getTemplateColor(){
-  const map={
-    pink:"#ffe6f2",
-    black:"#111",
-    retro:"#f5deb3",
-    minimal:"#ffffff"
-  };
-  return map[templateSelect.value];
 }
 
 /* STRIP */
@@ -317,7 +284,7 @@ async function generateStrip(){
   finalCanvas.height=height;
 
   const ctx=finalCanvas.getContext("2d");
-  ctx.fillStyle=getTemplateColor();
+  ctx.fillStyle="#ffffff";
   ctx.fillRect(0,0,width,height);
 
   let y=padding;
@@ -340,7 +307,7 @@ function loadImage(src){
 
 function downloadStrip(){
   const link=document.createElement("a");
-  link.download="photobox.png";
+  link.download="photobox-hd.png";
   link.href=finalCanvas.toDataURL("image/png");
   link.click();
 }
