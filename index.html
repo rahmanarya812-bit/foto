@@ -48,7 +48,7 @@ video {
 
 .controls { margin-top: 15px; }
 
-select, button, input {
+select, button {
   margin: 6px;
   padding: 8px 14px;
   border-radius: 12px;
@@ -124,19 +124,33 @@ button:hover { opacity: 0.85; }
       </select>
     </div>
 
-    <select id="template">
-      <option value="pink">Pink</option>
-      <option value="black">Black</option>
-      <option value="retro">Retro</option>
-      <option value="minimal">Minimal</option>
-    </select>
+    <!-- NUMBER OF PHOTOS -->
+    <div>
+      <label style="font-size:12px;color:#facc15;">NUMBER OF PHOTOS</label><br>
+      <select id="photoCountSelect">
+        <option value="2">2 Photos</option>
+        <option value="3">3 Photos</option>
+        <option value="4" selected>4 Photos</option>
+        <option value="5">5 Photos</option>
+      </select>
+    </div>
 
-    <input type="file" id="logoUpload" accept="image/*">
+    <!-- TEMPLATE -->
+    <div>
+      <label style="font-size:12px;color:#facc15;">TEMPLATE</label><br>
+      <select id="templateSelect">
+        <option value="pink">Pink</option>
+        <option value="black">Black</option>
+        <option value="retro">Retro</option>
+        <option value="minimal" selected>Minimal</option>
+      </select>
+    </div>
 
     <br>
 
-    <button onclick="startSession()">Start 4 Photos</button>
+    <button onclick="startSession()">Start Photos</button>
     <button onclick="downloadStrip()">Download</button>
+
   </div>
 
   <canvas id="canvas" hidden></canvas>
@@ -150,39 +164,26 @@ button:hover { opacity: 0.85; }
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const finalCanvas = document.getElementById("finalCanvas");
-const templateSelect = document.getElementById("template");
 const flash = document.getElementById("flash");
-const logoUpload = document.getElementById("logoUpload");
 const filterSelect = document.getElementById("filterSelect");
 const timerSelect = document.getElementById("timerSelect");
 const timerDisplay = document.getElementById("timerDisplay");
+const photoCountSelect = document.getElementById("photoCountSelect");
+const templateSelect = document.getElementById("templateSelect");
 
 let photos = [];
-let logoImage = null;
 
-/* FILTER */
+/* APPLY FILTER */
 filterSelect.addEventListener("change", () => {
   video.style.filter = filterSelect.value;
 });
 
-/* CAMERA */
+/* INIT CAMERA */
 async function initCamera() {
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
   video.srcObject = stream;
 }
 initCamera();
-
-/* LOGO */
-logoUpload.addEventListener("change", e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    logoImage = new Image();
-    logoImage.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-});
 
 /* START SESSION */
 async function startSession() {
@@ -190,8 +191,9 @@ async function startSession() {
   finalCanvas.style.display = "none";
 
   const delay = parseInt(timerSelect.value);
+  const photoCount = parseInt(photoCountSelect.value);
 
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < photoCount; i++) {
     await countdown(delay);
     capturePhoto();
   }
@@ -216,7 +218,7 @@ function countdown(seconds) {
   });
 }
 
-/* CAPTURE */
+/* CAPTURE FULL ORIGINAL */
 function capturePhoto() {
   flash.classList.add("active");
   setTimeout(() => flash.classList.remove("active"), 200);
@@ -231,7 +233,7 @@ function capturePhoto() {
   photos.push(canvas.toDataURL("image/png"));
 }
 
-/* TEMPLATE */
+/* TEMPLATE COLOR */
 function getTemplateColor() {
   const map = {
     pink: "#ffe6f2",
@@ -242,8 +244,9 @@ function getTemplateColor() {
   return map[templateSelect.value];
 }
 
-/* STRIP */
+/* GENERATE STRIP */
 async function generateStrip() {
+
   const padding = 40;
   const gap = 40;
   const photoWidth = 300;
@@ -253,7 +256,7 @@ async function generateStrip() {
   const photoHeight = photoWidth * ratio;
 
   const width = 400;
-  const height = padding + (photoHeight + gap) * 4 + 120;
+  const height = padding + (photoHeight + gap) * photos.length + 120;
 
   finalCanvas.width = width;
   finalCanvas.height = height;
@@ -282,20 +285,6 @@ async function generateStrip() {
     y += photoHeight + gap;
   }
 
-  const date = new Date().toLocaleDateString();
-  ctx.fillStyle = "#000";
-  ctx.font = "18px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(date, width / 2, height - 80);
-
-  if (logoImage) {
-    await new Promise(res => {
-      logoImage.onload = res;
-      if (logoImage.complete) res();
-    });
-    ctx.drawImage(logoImage, width / 2 - 50, height - 140, 100, 50);
-  }
-
   finalCanvas.style.display = "block";
 }
 
@@ -309,7 +298,7 @@ function loadImage(src) {
 
 function downloadStrip() {
   const link = document.createElement("a");
-  link.download = "photobox-timer.png";
+  link.download = "photobox-final.png";
   link.href = finalCanvas.toDataURL("image/png");
   link.click();
 }
