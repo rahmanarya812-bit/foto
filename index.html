@@ -221,7 +221,7 @@ const templateSelect=document.getElementById("templateSelect");
 
 let photos=[];
 
-/* Kamera Stabil */
+/* CAMERA */
 async function initCamera(){
   const stream=await navigator.mediaDevices.getUserMedia({
     video:{ facingMode:"user" }
@@ -230,12 +230,12 @@ async function initCamera(){
 }
 initCamera();
 
-/* Preview filter */
+/* FILTER PREVIEW */
 filterSelect.addEventListener("change",()=>{
   video.style.filter=filterSelect.value;
 });
 
-/* Start */
+/* START */
 async function startSession(){
   photos=[];
   finalCanvas.style.display="none";
@@ -252,7 +252,7 @@ async function startSession(){
   await generateStrip();
 }
 
-/* Countdown */
+/* COUNTDOWN */
 function countdown(sec){
   return new Promise(resolve=>{
     let c=sec;
@@ -265,7 +265,7 @@ function countdown(sec){
   });
 }
 
-/* Capture */
+/* CAPTURE */
 function capturePhoto(){
   flash.classList.add("active");
   setTimeout(()=>flash.classList.remove("active"),200);
@@ -280,7 +280,7 @@ function capturePhoto(){
   photos.push(canvas.toDataURL("image/png"));
 }
 
-/* Template */
+/* TEMPLATE COLOR */
 function getTemplateColor(){
   const map={
     pink:"#ffe6f2",
@@ -291,8 +291,9 @@ function getTemplateColor(){
   return map[templateSelect.value];
 }
 
-/* Strip */
+/* STRIP (AUTO CENTER FIX) */
 async function generateStrip(){
+
   const padding=40;
   const gap=40;
   const photoWidth=300;
@@ -302,7 +303,7 @@ async function generateStrip(){
   const photoHeight=photoWidth*ratio;
 
   const width=400;
-  const height=padding+(photoHeight+gap)*photos.length+100;
+  const height=padding+(photoHeight+gap)*photos.length+padding;
 
   finalCanvas.width=width;
   finalCanvas.height=height;
@@ -314,8 +315,14 @@ async function generateStrip(){
   let y=padding;
 
   for(let p of photos){
+
     const img=await loadImage(p);
-    ctx.drawImage(img,50,y,photoWidth,photoHeight);
+
+    // CENTER FIX
+    const x=(width-photoWidth)/2;
+
+    ctx.drawImage(img,x,y,photoWidth,photoHeight);
+
     y+=photoHeight+gap;
   }
 
