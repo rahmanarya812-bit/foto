@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Photobox iOS Glass HD</title>
+<title>Photobox</title>
 
 <style>
 *{box-sizing:border-box}
@@ -30,7 +30,10 @@ body{
   text-align:center;
 }
 
-h1{margin-bottom:20px;font-weight:600;}
+h1{
+  margin-bottom:20px;
+  font-weight:600;
+}
 
 .preview-wrapper{
   position:relative;
@@ -53,13 +56,12 @@ video{
   justify-content:center;
   font-size:60px;
   font-weight:bold;
-  backdrop-filter:blur(5px);
 }
 
 .controls{
   display:flex;
   flex-direction:column;
-  gap:18px;
+  gap:20px;
 }
 
 .control-group{
@@ -69,18 +71,18 @@ video{
 }
 
 .control-group label{
-  font-size:12px;
+  font-size:13px;
   letter-spacing:1px;
   color:#facc15;
 }
 
 select{
-  padding:12px;
-  border-radius:20px;
-  border:1px solid rgba(255,255,255,0.08);
-  background:rgba(20,20,20,0.9);
+  padding:14px;
+  border-radius:25px;
+  border:none;
+  background:#0d0d0d;
   color:white;
-  font-size:14px;
+  font-size:15px;
   outline:none;
 }
 
@@ -92,27 +94,27 @@ select{
 
 button{
   flex:1;
-  padding:14px;
-  border-radius:25px;
+  padding:16px;
+  border-radius:30px;
   border:none;
   font-weight:600;
+  font-size:16px;
   cursor:pointer;
   transition:.25s;
 }
 
-button:first-child{
+.start-btn{
   background:linear-gradient(135deg,#ff4da6,#ff2e88);
   color:white;
 }
 
-button:last-child{
-  background:rgba(255,255,255,0.1);
+.download-btn{
+  background:#333;
   color:white;
 }
 
 button:hover{
   transform:translateY(-2px);
-  box-shadow:0 10px 25px rgba(255,77,166,0.3);
 }
 
 .flash{
@@ -193,8 +195,8 @@ button:hover{
 </div>
 
 <div class="button-group">
-<button onclick="startSession()">Start Photos</button>
-<button onclick="downloadStrip()">Download</button>
+<button class="start-btn" onclick="startSession()">Start Photos</button>
+<button class="download-btn" onclick="downloadStrip()">Download</button>
 </div>
 
 </div>
@@ -219,33 +221,21 @@ const templateSelect=document.getElementById("templateSelect");
 
 let photos=[];
 
-/* HD CAMERA + AUTOFOCUS */
+/* Kamera Stabil */
 async function initCamera(){
   const stream=await navigator.mediaDevices.getUserMedia({
-    video:{
-      width:{ideal:1920},
-      height:{ideal:1080},
-      facingMode:"user"
-    }
+    video:{ facingMode:"user" }
   });
-
   video.srcObject=stream;
-
-  await new Promise(resolve=>{
-    video.onloadedmetadata=()=>{
-      video.play();
-      resolve();
-    };
-  });
 }
 initCamera();
 
-/* PREVIEW FILTER */
+/* Preview filter */
 filterSelect.addEventListener("change",()=>{
   video.style.filter=filterSelect.value;
 });
 
-/* START SESSION */
+/* Start */
 async function startSession(){
   photos=[];
   finalCanvas.style.display="none";
@@ -255,14 +245,14 @@ async function startSession(){
 
   for(let i=0;i<count;i++){
     await countdown(delay);
-    await new Promise(r=>setTimeout(r,400)); // anti blur delay
+    await new Promise(r=>setTimeout(r,400));
     capturePhoto();
   }
 
   await generateStrip();
 }
 
-/* COUNTDOWN */
+/* Countdown */
 function countdown(sec){
   return new Promise(resolve=>{
     let c=sec;
@@ -270,15 +260,12 @@ function countdown(sec){
     const i=setInterval(()=>{
       c--;
       timerDisplay.textContent=c>0?c:"";
-      if(c<=0){
-        clearInterval(i);
-        resolve();
-      }
+      if(c<=0){clearInterval(i);resolve();}
     },1000);
   });
 }
 
-/* CAPTURE */
+/* Capture */
 function capturePhoto(){
   flash.classList.add("active");
   setTimeout(()=>flash.classList.remove("active"),200);
@@ -287,16 +274,13 @@ function capturePhoto(){
   canvas.height=video.videoHeight;
 
   const ctx=canvas.getContext("2d");
-  ctx.imageSmoothingEnabled=true;
-  ctx.imageSmoothingQuality="high";
-
   ctx.filter=filterSelect.value;
   ctx.drawImage(video,0,0);
 
   photos.push(canvas.toDataURL("image/png"));
 }
 
-/* TEMPLATE */
+/* Template */
 function getTemplateColor(){
   const map={
     pink:"#ffe6f2",
@@ -307,7 +291,7 @@ function getTemplateColor(){
   return map[templateSelect.value];
 }
 
-/* STRIP */
+/* Strip */
 async function generateStrip(){
   const padding=40;
   const gap=40;
