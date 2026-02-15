@@ -30,10 +30,7 @@ body{
   text-align:center;
 }
 
-h1{
-  margin-bottom:20px;
-  font-weight:600;
-}
+h1{margin-bottom:20px;font-weight:600;}
 
 .preview-wrapper{
   position:relative;
@@ -291,7 +288,7 @@ function getTemplateColor(){
   return map[templateSelect.value];
 }
 
-/* STRIP (AUTO CENTER FIX) */
+/* STRIP WITH CENTER CROP */
 async function generateStrip(){
 
   const padding=40;
@@ -317,11 +314,21 @@ async function generateStrip(){
   for(let p of photos){
 
     const img=await loadImage(p);
-
-    // CENTER FIX
     const x=(width-photoWidth)/2;
 
-    ctx.drawImage(img,x,y,photoWidth,photoHeight);
+    const sourceWidth=img.width;
+    const sourceHeight=img.height;
+
+    const cropWidth=sourceHeight*(photoWidth/photoHeight);
+    const cropX=(sourceWidth-cropWidth)/2;
+
+    ctx.drawImage(
+      img,
+      cropX,0,
+      cropWidth,sourceHeight,
+      x,y,
+      photoWidth,photoHeight
+    );
 
     y+=photoHeight+gap;
   }
