@@ -1,358 +1,389 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>📸 Arya Photobox</title>
-
-<style>
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;
-  background:linear-gradient(135deg,#0f0f0f,#1a1a1a);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-  color:white;
-}
-
-.container{
-  width:380px;
-  padding:30px;
-  border-radius:30px;
-  backdrop-filter:blur(25px);
-  background:rgba(255,255,255,0.05);
-  box-shadow:0 20px 60px rgba(0,0,0,0.6);
-  border:1px solid rgba(255,255,255,0.08);
-  text-align:center;
-}
-
-h1{margin-bottom:20px;font-weight:600;}
-
-.preview-wrapper{
-  position:relative;
-  border-radius:25px;
-  overflow:hidden;
-  margin-bottom:25px;
-}
-
-video{
-  width:100%;
-  border-radius:25px;
-  display:block;
-}
-
-.timer-display{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:60px;
-  font-weight:bold;
-}
-
-.controls{
-  display:flex;
-  flex-direction:column;
-  gap:20px;
-}
-
-.control-group{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-
-.control-group label{
-  font-size:13px;
-  letter-spacing:1px;
-  color:#facc15;
-}
-
-select{
-  padding:14px;
-  border-radius:25px;
-  border:none;
-  background:#0d0d0d;
-  color:white;
-  font-size:15px;
-  outline:none;
-}
-
-.button-group{
-  display:flex;
-  gap:15px;
-  margin-top:10px;
-}
-
-button{
-  flex:1;
-  padding:16px;
-  border-radius:30px;
-  border:none;
-  font-weight:600;
-  font-size:16px;
-  cursor:pointer;
-  transition:.25s;
-}
-
-.start-btn{
-  background:linear-gradient(135deg,#ff4da6,#ff2e88);
-  color:white;
-}
-
-.download-btn{
-  background:#333;
-  color:white;
-}
-
-button:hover{
-  transform:translateY(-2px);
-}
-
-.flash{
-  position:fixed;
-  inset:0;
-  background:white;
-  opacity:0;
-  pointer-events:none;
-}
-
-.flash.active{
-  animation:flashAnim .3s ease;
-}
-
-@keyframes flashAnim{
-  0%{opacity:1}
-  100%{opacity:0}
-}
-
-#finalCanvas{
-  display:none;
-  margin-top:20px;
-  border-radius:20px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="container">
-
-<h1>📸 Photobox</h1>
-
-<div class="preview-wrapper">
-  <video id="video" autoplay playsinline></video>
-  <div id="timerDisplay" class="timer-display"></div>
-</div>
-
-<div class="controls">
-
-<div class="control-group">
-<label>VISUAL FILTER</label>
-<select id="filterSelect">
-<option value="none">Normal</option>
-<option value="grayscale(100%)">B&W</option>
-<option value="sepia(70%)">Vintage</option>
-<option value="brightness(110%) saturate(130%)">Golden Hour</option>
-</select>
-</div>
-
-<div class="control-group">
-<label>TIMER</label>
-<select id="timerSelect">
-<option value="3">3s</option>
-<option value="5">5s</option>
-<option value="10">10s</option>
-</select>
-</div>
-
-<div class="control-group">
-<label>NUMBER OF PHOTOS</label>
-<select id="photoCountSelect">
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4" selected>4</option>
-<option value="5">5</option>
-</select>
-</div>
-
-<div class="control-group">
-<label>TEMPLATE</label>
-<select id="templateSelect">
-<option value="pink">Pink</option>
-<option value="black">Black</option>
-<option value="retro">Retro</option>
-<option value="minimal" selected>Minimal</option>
-</select>
-</div>
-
-<div class="button-group">
-<button class="start-btn" onclick="startSession()">Start Photos</button>
-<button class="download-btn" onclick="downloadStrip()">Download</button>
-</div>
-
-</div>
-
-<canvas id="canvas" hidden></canvas>
-<canvas id="finalCanvas"></canvas>
-
-</div>
-
-<div class="flash" id="flash"></div>
-
-<script>
-const video=document.getElementById("video");
-const canvas=document.getElementById("canvas");
-const finalCanvas=document.getElementById("finalCanvas");
-const flash=document.getElementById("flash");
-const timerDisplay=document.getElementById("timerDisplay");
-const filterSelect=document.getElementById("filterSelect");
-const timerSelect=document.getElementById("timerSelect");
-const photoCountSelect=document.getElementById("photoCountSelect");
-const templateSelect=document.getElementById("templateSelect");
-
-let photos=[];
-
-/* CAMERA */
-async function initCamera(){
-  const stream=await navigator.mediaDevices.getUserMedia({
-    video:{ facingMode:"user" }
-  });
-  video.srcObject=stream;
-}
-initCamera();
-
-/* FILTER PREVIEW */
-filterSelect.addEventListener("change",()=>{
-  video.style.filter=filterSelect.value;
-});
-
-/* START */
-async function startSession(){
-  photos=[];
-  finalCanvas.style.display="none";
-
-  const delay=parseInt(timerSelect.value);
-  const count=parseInt(photoCountSelect.value);
-
-  for(let i=0;i<count;i++){
-    await countdown(delay);
-    await new Promise(r=>setTimeout(r,400));
-    capturePhoto();
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📸 Arya Photobox</title>
+  
+  <style>
+  *{box-sizing:border-box}
+  
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;
+    background:linear-gradient(135deg,#0f0f0f,#1a1a1a);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    color:white;
   }
-
-  await generateStrip();
-}
-
-/* COUNTDOWN */
-function countdown(sec){
-  return new Promise(resolve=>{
-    let c=sec;
-    timerDisplay.textContent=c;
-    const i=setInterval(()=>{
-      c--;
-      timerDisplay.textContent=c>0?c:"";
-      if(c<=0){clearInterval(i);resolve();}
-    },1000);
-  });
-}
-
-/* CAPTURE */
-function capturePhoto(){
-  flash.classList.add("active");
-  setTimeout(()=>flash.classList.remove("active"),200);
-
-  canvas.width=video.videoWidth;
-  canvas.height=video.videoHeight;
-
-  const ctx=canvas.getContext("2d");
-  ctx.filter=filterSelect.value;
-  ctx.drawImage(video,0,0);
-
-  photos.push(canvas.toDataURL("image/png"));
-}
-
-/* TEMPLATE COLOR */
-function getTemplateColor(){
-  const map={
-    pink:"#ffe6f2",
-    black:"#111",
-    retro:"#f5deb3",
-    minimal:"#ffffff"
-  };
-  return map[templateSelect.value];
-}
-
-/* STRIP WITH CENTER CROP */
-async function generateStrip(){
-
-  const padding=40;
-  const gap=40;
-  const photoWidth=300;
-
-  const first=await loadImage(photos[0]);
-  const ratio=first.height/first.width;
-  const photoHeight=photoWidth*ratio;
-
-  const width=400;
-  const height=padding+(photoHeight+gap)*photos.length+padding;
-
-  finalCanvas.width=width;
-  finalCanvas.height=height;
-
-  const ctx=finalCanvas.getContext("2d");
-  ctx.fillStyle=getTemplateColor();
-  ctx.fillRect(0,0,width,height);
-
-  let y=padding;
-
-  for(let p of photos){
-
-    const img=await loadImage(p);
-    const x=(width-photoWidth)/2;
-
-    const sourceWidth=img.width;
-    const sourceHeight=img.height;
-
-    const cropWidth=sourceHeight*(photoWidth/photoHeight);
-    const cropX=(sourceWidth-cropWidth)/2;
-
-    ctx.drawImage(
-      img,
-      cropX,0,
-      cropWidth,sourceHeight,
-      x,y,
-      photoWidth,photoHeight
-    );
-
-    y+=photoHeight+gap;
+  
+  .container{
+    width:380px;
+    padding:30px;
+    border-radius:30px;
+    backdrop-filter:blur(25px);
+    background:rgba(255,255,255,0.05);
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+    border:1px solid rgba(255,255,255,0.08);
+    text-align:center;
   }
-
-  finalCanvas.style.display="block";
-}
-
-function loadImage(src){
-  return new Promise(res=>{
-    const img=new Image();
-    img.onload=()=>res(img);
-    img.src=src;
+  
+  h1{margin-bottom:20px;font-weight:600;}
+  
+  .preview-wrapper{
+    position:relative;
+    border-radius:25px;
+    overflow:hidden;
+    margin-bottom:25px;
+  }
+  
+  video{
+    width:100%;
+    border-radius:25px;
+    display:block;
+  }
+  
+  .timer-display{
+    position:absolute;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:60px;
+    font-weight:bold;
+  }
+  
+  .controls{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+  
+  .control-group{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  
+  .control-group label{
+    font-size:13px;
+    letter-spacing:1px;
+    color:#facc15;
+  }
+  
+  select{
+    padding:14px;
+    border-radius:25px;
+    border:none;
+    background:#0d0d0d;
+    color:white;
+    font-size:15px;
+    outline:none;
+  }
+  
+  .button-group{
+    display:flex;
+    gap:15px;
+    margin-top:10px;
+  }
+  
+  button{
+    flex:1;
+    padding:16px;
+    border-radius:30px;
+    border:none;
+    font-weight:600;
+    font-size:16px;
+    cursor:pointer;
+    transition:.25s;
+  }
+  
+  .start-btn{
+    background:linear-gradient(135deg,#ff4da6,#ff2e88);
+    color:white;
+  }
+  
+  .download-btn{
+    background:#333;
+    color:white;
+  }
+  
+  button:hover{
+    transform:translateY(-2px);
+  }
+  
+  .flash{
+    position:fixed;
+    inset:0;
+    background:white;
+    opacity:0;
+    pointer-events:none;
+  }
+  
+  .flash.active{
+    animation:flashAnim .3s ease;
+  }
+  
+  @keyframes flashAnim{
+    0%{opacity:1}
+    100%{opacity:0}
+  }
+  
+  #finalCanvas{
+    display:none;
+    margin-top:20px;
+    border-radius:20px;
+  }
+  </style>
+  </head>
+  
+  <body>
+  
+  <div class="container">
+  
+    <h1>📸 Photobox</h1>
+  
+    <div class="preview-wrapper">
+      <video id="video" autoplay playsinline></video>
+      <div id="timerDisplay" class="timer-display"></div>
+    </div>
+  
+    <div class="controls">
+  
+      <div class="control-group">
+        <label>VISUAL FILTER</label>
+        <select id="filterSelect">
+          <option value="none">Normal</option>
+          <option value="grayscale(100%)">B&W</option>
+          <option value="sepia(70%)">Vintage</option>
+          <option value="brightness(110%) saturate(130%)">Golden Hour</option>
+        </select>
+      </div>
+  
+      <div class="control-group">
+        <label>TIMER</label>
+        <select id="timerSelect">
+          <option value="3">3s</option>
+          <option value="5">5s</option>
+          <option value="10">10s</option>
+        </select>
+      </div>
+  
+      <div class="control-group">
+        <label>NUMBER OF PHOTOS</label>
+        <select id="photoCountSelect">
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4" selected>4</option>
+          <option value="5">5</option>
+        </select>
+      </div>
+  
+      <div class="control-group">
+        <label>TEMPLATE</label>
+        <select id="templateSelect">
+          <option value="pink">Pink</option>
+          <option value="black">Black</option>
+          <option value="retro">Retro</option>
+          <option value="minimal" selected>Minimal</option>
+        </select>
+      </div>
+  
+      <div class="button-group">
+        <button class="start-btn" onclick="startSession()">Start Photos</button>
+        <button class="download-btn" onclick="toggleCamera()">Flip</button>
+        <button class="download-btn" onclick="downloadStrip()">Download</button>
+      </div>
+  
+    </div>
+  
+    <canvas id="canvas" hidden></canvas>
+    <canvas id="finalCanvas"></canvas>
+  
+  </div>
+  
+  <div class="flash" id="flash"></div>
+  
+  <script>
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("canvas");
+  const finalCanvas = document.getElementById("finalCanvas");
+  const flash = document.getElementById("flash");
+  const timerDisplay = document.getElementById("timerDisplay");
+  const filterSelect = document.getElementById("filterSelect");
+  const timerSelect = document.getElementById("timerSelect");
+  const photoCountSelect = document.getElementById("photoCountSelect");
+  const templateSelect = document.getElementById("templateSelect");
+  
+  let photos = [];
+  
+  /* CAMERA TOGGLE STATE */
+  let currentStream = null;
+  let facingMode = "user"; // "user" = front, "environment" = back
+  
+  function stopStream(){
+    if(currentStream){
+      currentStream.getTracks().forEach(t => t.stop());
+      currentStream = null;
+    }
+  }
+  
+  /* CAMERA */
+  async function initCamera(){
+    try{
+      stopStream();
+  
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: facingMode }
+        },
+        audio: false
+      });
+  
+      currentStream = stream;
+      video.srcObject = stream;
+      await video.play();
+    }catch(err){
+      console.error("Camera error:", err);
+      alert("Gagal akses kamera. Pastikan izin kamera sudah diberikan, dan jalankan via HTTPS / localhost.");
+    }
+  }
+  
+  async function toggleCamera(){
+    facingMode = (facingMode === "user") ? "environment" : "user";
+    await initCamera();
+  }
+  
+  initCamera();
+  
+  /* FILTER PREVIEW */
+  filterSelect.addEventListener("change", () => {
+    video.style.filter = filterSelect.value;
   });
-}
-
-function downloadStrip(){
-  const link=document.createElement("a");
-  link.download="photobox.png";
-  link.href=finalCanvas.toDataURL("image/png");
-  link.click();
-}
-</script>
-
-</body>
-</html>
-
-
+  
+  /* START */
+  async function startSession(){
+    photos = [];
+    finalCanvas.style.display = "none";
+  
+    const delay = parseInt(timerSelect.value, 10);
+    const count = parseInt(photoCountSelect.value, 10);
+  
+    for(let i=0;i<count;i++){
+      await countdown(delay);
+      await new Promise(r => setTimeout(r, 400));
+      capturePhoto();
+    }
+  
+    await generateStrip();
+  }
+  
+  /* COUNTDOWN */
+  function countdown(sec){
+    return new Promise(resolve=>{
+      let c = sec;
+      timerDisplay.textContent = c;
+  
+      const i = setInterval(()=>{
+        c--;
+        timerDisplay.textContent = c > 0 ? c : "";
+        if(c <= 0){
+          clearInterval(i);
+          resolve();
+        }
+      }, 1000);
+    });
+  }
+  
+  /* CAPTURE */
+  function capturePhoto(){
+    flash.classList.add("active");
+    setTimeout(()=>flash.classList.remove("active"), 200);
+  
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+  
+    const ctx = canvas.getContext("2d");
+    ctx.filter = filterSelect.value;
+    ctx.drawImage(video, 0, 0);
+  
+    photos.push(canvas.toDataURL("image/png"));
+  }
+  
+  /* TEMPLATE COLOR */
+  function getTemplateColor(){
+    const map = {
+      pink:"#ffe6f2",
+      black:"#111",
+      retro:"#f5deb3",
+      minimal:"#ffffff"
+    };
+    return map[templateSelect.value];
+  }
+  
+  /* STRIP WITH CENTER CROP */
+  async function generateStrip(){
+    const padding = 40;
+    const gap = 40;
+    const photoWidth = 300;
+  
+    const first = await loadImage(photos[0]);
+    const ratio = first.height / first.width;
+    const photoHeight = photoWidth * ratio;
+  
+    const width = 400;
+    const height = padding + (photoHeight + gap) * photos.length + padding;
+  
+    finalCanvas.width = width;
+    finalCanvas.height = height;
+  
+    const ctx = finalCanvas.getContext("2d");
+    ctx.fillStyle = getTemplateColor();
+    ctx.fillRect(0,0,width,height);
+  
+    let y = padding;
+  
+    for(let p of photos){
+      const img = await loadImage(p);
+      const x = (width - photoWidth) / 2;
+  
+      const sourceWidth = img.width;
+      const sourceHeight = img.height;
+  
+      const cropWidth = sourceHeight * (photoWidth / photoHeight);
+      const cropX = (sourceWidth - cropWidth) / 2;
+  
+      ctx.drawImage(
+        img,
+        cropX, 0,
+        cropWidth, sourceHeight,
+        x, y,
+        photoWidth, photoHeight
+      );
+  
+      y += photoHeight + gap;
+    }
+  
+    finalCanvas.style.display = "block";
+  }
+  
+  function loadImage(src){
+    return new Promise(res=>{
+      const img = new Image();
+      img.onload = ()=>res(img);
+      img.src = src;
+    });
+  }
+  
+  function downloadStrip(){
+    const link = document.createElement("a");
+    link.download = "photobox.png";
+    link.href = finalCanvas.toDataURL("image/png");
+    link.click();
+  }
+  </script>
+  
+  </body>
+  </html>
